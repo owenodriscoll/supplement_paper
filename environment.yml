@@ -387,7 +387,7 @@ dependencies:
   - zlib=1.2.13=h166bdaf_4
   - zstd=1.5.2=h3eb15da_6
   - pip:
-    - git+https://github.com/owenodriscoll/AutoML.git
+    - git+https://github.com/owenodriscoll/AutoML.git@v2.1
     - cftime==1.6.2
     - h5netcdf==1.1.0
     - h5py==3.8.0
