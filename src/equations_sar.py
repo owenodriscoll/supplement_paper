@@ -193,6 +193,9 @@ def ds_windfield(sar_ds, PolarSpecSigma0_smooth, wdir_ambiguity, label, wdir_ref
         sar_ds: updated with a find field with coordinates in metre
         sum_theta: sum of energy per theta within bandpass
         angle_pre_conversion: angle in polar spectrum with greatest energy 
+        energy_dir: spectral energy direction w.r.t North
+        energy_dir_range_unambiguous: spectral energy direction w.r.t. down saltellite range
+        wdir: estimated wind direction assuming that energy direction == wind direction (or 90 deg. offs
     """
 
     bandpass_subset = PolarSpecSigma0_smooth.sel(f = slice(freq_min, freq_max))
@@ -207,7 +210,7 @@ def ds_windfield(sar_ds, PolarSpecSigma0_smooth, wdir_ambiguity, label, wdir_ref
     angle = ( -(angle_pre_conversion - 90) + 360) % 360
 
     # convert angle from w.r.t. azimuth to w.r.t. range
-    energy_dir_range =  (angle  - 90 ) % 360 
+    energy_dir_range_unambiguous =  (angle  - 90 ) % 360 
 
     # convert angle from w.r.t. azimuth to w.r.t. North
     energy_dir =  ((sar_ds.ground_heading.mean().values  + 360 ) % 360 + angle + 360 ) % 360
@@ -225,7 +228,7 @@ def ds_windfield(sar_ds, PolarSpecSigma0_smooth, wdir_ambiguity, label, wdir_ref
     if (diff >= 90) & (diff <= 270):
         wdir = (wdir + 180) % 360
         angle = (angle + 180) % 360
-        energy_dir_range = (energy_dir_range + 180) % 360        
+        energy_dir_range_unambiguous = (energy_dir_range_unambiguous + 180) % 360          
 
     # add correction for convection type and convert from azimuth to range by + 90 (radar viowing direction)
     phi = (angle + offset - 90 ) % 360 
@@ -240,7 +243,7 @@ def ds_windfield(sar_ds, PolarSpecSigma0_smooth, wdir_ambiguity, label, wdir_ref
         
     sar_ds['windfield'] = (('atrack_m', 'xtrack_m'), windfield)
     
-    return sar_ds, sum_theta, angle_pre_conversion, energy_dir, energy_dir_range, wdir
+    return sar_ds, sum_theta, angle_pre_conversion, energy_dir, energy_dir_range_unambiguous, wdir
 
 
 

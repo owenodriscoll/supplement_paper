@@ -9,6 +9,7 @@ def sar_analysis(sar_ds, zi_ref, wdir_ambiguity, wdir_ref = None):
     """
 
     label = 'Wind Streaks'          # 'Wind Streaks' or 'Micro Convective Cell', for latter adds 90 deg wind-dir. offset
+                                    # only necessary when no 'wdir_red' is provided
     freq_max = 1 / 600              # maximum frequency in bandpass  [m-1]
     freq_min = 1 / 3000             # minimum frequency in bandpass  [m-1]
     freq_lower_lim = 1 / 300        # maximum frequency for spectral troughs in inertial subrange [m-1]
@@ -38,7 +39,7 @@ def sar_analysis(sar_ds, zi_ref, wdir_ambiguity, wdir_ref = None):
                                                Nt=720, Nf=600, interpolation=interpolation)
 
     # -- use polar sigma0 spectrum to compute wind direction and corresponding wind field from sigma0
-    sar_ds, sum_theta, angle_pre_conversion, energy_dir, energy_dir_range, wdir = eq.ds_windfield(sar_ds,
+    sar_ds, sum_theta, angle_pre_conversion, energy_dir, energy_dir_range_unambiguous, wdir = eq.ds_windfield(sar_ds,
                                                                                                   PolarSpec_sigma_0,
                                                                                                   wdir_ambiguity=wdir_ambiguity,
                                                                                                   wdir_ref=wdir_ref,
@@ -82,7 +83,7 @@ def sar_analysis(sar_ds, zi_ref, wdir_ambiguity, wdir_ref = None):
                   dissip_rate=dissip_rate, freq_max=freq_max, freq_min=freq_min, freq_lower_lim=freq_lower_lim)
 
     # -- compute frequency normalised and average spectral information of wind field and sigma0
-    _, S_windfield_xi_mean, S_windfield_xi_std_norm = eq.da_PSD(da_polar_mean, idx_inertial_max=idx_inertial_max,
+    _, S_windfield_xi_mean, S_windfield_xi_norm_std = eq.da_PSD(da_polar_mean, idx_inertial_max=idx_inertial_max,
                                                                 idx_inertial_min=idx_inertial_min)
     _, S_sigma0_xi_mean, S_sigma0_xi_std_norm = eq.da_PSD(da_polar_sigma_mean, idx_inertial_max=idx_inertial_max,
                                                           idx_inertial_min=idx_inertial_min)
@@ -102,14 +103,15 @@ def sar_analysis(sar_ds, zi_ref, wdir_ambiguity, wdir_ref = None):
     lon_sar = sar_ds.longitude.mean().values * 1
     lat_sar = sar_ds.latitude.mean().values * 1
 
-    row = [time_imagette, lat_sar, lon_sar, U_n, wdir, incidence_avg, mean_ground_heading, energy_dir_range,
-        energy_dir, window_effect, polar_effect, var_cartesian, var_windfield, var_polar, var_bandpass, var_highpass,
-        var_lowpass, var_beam, var_bandpass_beam, var_beyond_nyquist, frac_beam, frac_bandpass, frac_lowpass,
+    row = [
+        time_imagette, lat_sar, lon_sar, U_n, wdir, incidence_avg, energy_dir_range_unambiguous,
+        window_effect, var_cartesian, var_windfield, var_bandpass, var_highpass,
+        var_lowpass, var_beam, var_bandpass_beam, var_beyond_nyquist, frac_lowpass,
         frac_highpass, density_beam, density_bandpass, density_beam_bandpass,u_star, z_0, Cdn, sigma_u, L, B, w_star, 
-        w_star_normalised_deviation, corr_fact, H, spectral_peak, spectral_valley, mean_25th, median_25th, std_25th, 
+        corr_fact, spectral_peak, spectral_valley, mean_25th, median_25th, std_25th, 
         mad_25th, mean_50th, median_50th, std_50th, mad_50th, mean_75th, median_75th, std_75th, mad_75th,
-        S_windfield_xi_mean, S_windfield_xi_std_norm, S_sigma0_xi_mean, S_sigma0_xi_std_norm,
-            ]
+        S_windfield_xi_mean, S_windfield_xi_norm_std, S_sigma0_xi_mean, S_sigma0_xi_std_norm,
+        ]
     
     return row
 
